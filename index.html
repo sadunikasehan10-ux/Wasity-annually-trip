@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="UTF-8">
+  <title>මනාප ප්‍රකාශ කිරීම</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      max-width: 360px;
+      margin: auto;
+      padding: 20px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h3>🗳️ මනාප ප්‍රකාශ කිරීම</h3>
+
+  <label>නම:</label><br>
+  <input type="text" id="name" placeholder="ඔබගේ නම"><br><br>
+
+  <label>wasity yearly trip:</label><br>
+  <select id="choice" onchange="toggleCustom()">
+    <option value="">-- තෝරන්න --</option>
+    <option>නුවර</option>
+    <option>ගාල්ල</option>
+    <option>පුත්තලම</option>
+    <option>සිගිරිය</option>
+    <option>කුරුණෑගල</option>
+    <option>ගම්පහ</option>
+    <option>ඩුබායි</option>
+    <option value="custom">Create custom answer</option>
+  </select><br><br>
+
+  <div id="customBox" style="display:none;">
+    <input type="text" id="customAnswer" placeholder="Custom answer"><br><br>
+  </div>
+
+  <button onclick="submitVote()">Submit</button>
+
+  <p id="msg"></p>
+</div>
+
+<script>
+  function toggleCustom() {
+    const c = document.getElementById("choice").value;
+    document.getElementById("customBox").style.display =
+      c === "custom" ? "block" : "none";
+  }
+</script>
+
+</body>
+</html>
