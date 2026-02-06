@@ -3,3 +3,8 @@ async function getIP() {
   const data = await res.json();
   return data.ip;
 }
+
+document.getElementById("submitBtn").addEventListener("click", async () => {
+  const ip = await getIP();
+  console.log("Your IP:", ip);
+});
