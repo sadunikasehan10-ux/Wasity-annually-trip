@@ -6,5 +6,5 @@ async function getIP() {
 
 document.getElementById("submitBtn").addEventListener("click", async () => {
   const ip = await getIP();
-  console.log("Your IP:", ip);
+  alert("Your IP is: " + ip);
 });
