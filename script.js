@@ -98,3 +98,4 @@ window.submitVote = async function(){
             "Vote saved successfully!";
     }
 }
+
