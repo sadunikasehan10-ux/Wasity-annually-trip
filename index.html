@@ -1,89 +1,100 @@
-<!DOCTYPE html>
-<html lang="si">
-<head>
-<meta charset="UTF-8">
-<title>Wasity Trip Voting</title>
-<link rel="stylesheet" href="style.css">
-</head>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-<body>
+// 🔥 Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyD5xIjemUx_rH4TzFBW_TJQ0Q7crdJ7IvY",
+  authDomain: "wasity-trip.firebaseapp.com",
+  databaseURL: "https://wasity-trip-default-rtdb.firebaseio.com",
+  projectId: "wasity-trip"
+};
 
-<div class="container">
+// Init
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
 
-<h2>Wasity Yearly Trip</h2>
+// 🔐 Anonymous Auth
+let userId = "";
 
-<p class="important">
-⚠️ <b>Important:</b> For one user only can vote once.  
-So make sure your vote is correct before submit.
-</p>
+signInAnonymously(auth).then((cred)=>{
+    userId = cred.user.uid;
+});
 
-<input type="text" id="name" placeholder="ඔබගේ නම">
+// Device info
+function getDeviceInfo(){
+    return navigator.userAgent;
+}
 
-<input type="email" id="email" placeholder="Email address">
+// Get IP
+async function getIP(){
+    let res = await fetch("https://api.ipify.org?format=json");
+    let data = await res.json();
+    return data.ip;
+}
 
-<br>
+// Custom vote
+window.checkCustom = function(){
+    const vote = document.getElementById("vote").value;
+    document.getElementById("customVote").style.display =
+        vote === "custom" ? "block" : "none";
+}
 
-<select id="vote" onchange="checkCustom()">
-<option>නුවර</option>
-<option>ගාල්ල</option>
-<option>පුත්තලම</option>
-<option>සිගිරිය</option>
-<option>කුරුණෑගල</option>
-<option>ගම්පහ</option>
-<option>ඩුබායි</option>
-<option value="custom">Create a custom answer</option>
-</select>
+// Submit vote
+window.submitVote = async function(){
 
-<input type="text" id="customVote" placeholder="Custom place" style="display:none;">
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
 
-<hr>
+    const name = document.getElementById("name").value.trim();
+    if(name === ""){
+        alert("නම ඇතුලත් කරන්න");
+        btn.disabled = false;
+        return;
+    }
 
-<div class="row">
-<input type="text" id="location" placeholder="පදිංචි ස්ථානය">
-<input type="text" id="travelTime" placeholder="පැමිණීමට ගතවන වෙලාව">
-<input type="text" id="arrivalTime" placeholder="සාමාන්‍යයෙන් පැමිණිය හැකි වෙලාව">
-</div>
+    const ip = await getIP();
+    const dbRef = ref(db);
 
-<hr>
+    get(child(dbRef,"votes")).then(snapshot=>{
 
-<p>චාරිකාව සදහා දෙමාපිය කැමැත්ත ලබා ගත</p>
-<select id="parentPermission">
-<option>හැක</option>
-<option>නොහැක</option>
-</select>
+        let voted = false;
 
-<hr>
+        snapshot?.forEach(snap=>{
+            const v = snap.val();
+            if(v.ip === ip || v.userId === userId){
+                voted = true;
+            }
+        });
 
-<div class="row">
-<div>
-<label>චාරිකාව යා යුතු කාල සීමාව</label>
-<input type="date" id="tripFrom">
-<input type="date" id="tripTo">
-</div>
+        if(voted){
+            alert("ඔබ දැනටමත් vote කරලා!");
+            return;
+        }
 
-<div>
-<label>ඔබට යා නොහැකි කාල සීමාව / දිනය</label>
-<input type="date" id="notAvailable">
-</div>
-</div>
+        saveVote(ip);
+    });
 
-<br>
+    function saveVote(ip){
+        push(ref(db,"votes"),{
+            name: name,
+            vote: document.getElementById("vote").value,
+            customVote: document.getElementById("customVote").value,
+            location: document.getElementById("location").value,
+            travelTime: document.getElementById("travelTime").value,
+            arrivalTime: document.getElementById("arrivalTime").value,
+            parentPermission: document.getElementById("parentPermission").value,
+            tripFrom: document.getElementById("tripFrom").value,
+            tripTo: document.getElementById("tripTo").value,
+            notAvailable: document.getElementById("notAvailable").value,
+            ip: ip,
+            userId: userId,
+            device: getDeviceInfo(),
+            time: new Date().toLocaleString()
+        });
 
-<button id="submitBtn" onclick="submitVote()">Submit Vote</button>
-<p id="status"></p>
-
-<hr>
-
-<div class="contacts">
-<p><b>For more information, contact</b></p>
-
-<a href="https://wa.me/94712334884" target="_blank">Charith Sir</a> |
-<a href="https://wa.me/94757560034" target="_blank">Coordinator</a> |
-<a href="https://wa.me/94788591931" target="_blank">Website Hoster (I'm anonymous)</a>
-</div>
-
-</div>
-
-<script type="module" src="script.js"></script>
-</body>
-</html>
+        document.getElementById("status").innerText =
+            "Vote saved successfully!";
+    }
+}
