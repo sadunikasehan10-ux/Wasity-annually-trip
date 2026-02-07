@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="si">
 <head>
 <meta charset="UTF-8">
 <title>Wasity Trip Voting</title>
-
 <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
@@ -14,11 +12,18 @@
 
 <h2>Wasity Yearly Trip</h2>
 
+<p class="important">
+⚠️ <b>Important:</b> For one user only can vote once.  
+So make sure your vote is correct before submit.
+</p>
+
 <input type="text" id="name" placeholder="ඔබගේ නම">
 
-<br><br>
+<input type="email" id="email" placeholder="Email address">
 
-<select id="vote">
+<br>
+
+<select id="vote" onchange="checkCustom()">
 <option>නුවර</option>
 <option>ගාල්ල</option>
 <option>පුත්තලම</option>
@@ -26,17 +31,59 @@
 <option>කුරුණෑගල</option>
 <option>ගම්පහ</option>
 <option>ඩුබායි</option>
+<option value="custom">Create a custom answer</option>
 </select>
 
-<br><br>
+<input type="text" id="customVote" placeholder="Custom place" style="display:none;">
 
-<button onclick="submitVote()">Submit Vote</button>
+<hr>
 
+<div class="row">
+<input type="text" id="location" placeholder="පදිංචි ස්ථානය">
+<input type="text" id="travelTime" placeholder="පැමිණීමට ගතවන වෙලාව">
+<input type="text" id="arrivalTime" placeholder="සාමාන්‍යයෙන් පැමිණිය හැකි වෙලාව">
+</div>
+
+<hr>
+
+<p>චාරිකාව සදහා දෙමාපිය කැමැත්ත ලබා ගත</p>
+<select id="parentPermission">
+<option>හැක</option>
+<option>නොහැක</option>
+</select>
+
+<hr>
+
+<div class="row">
+<div>
+<label>චාරිකාව යා යුතු කාල සීමාව</label>
+<input type="date" id="tripFrom">
+<input type="date" id="tripTo">
+</div>
+
+<div>
+<label>ඔබට යා නොහැකි කාල සීමාව / දිනය</label>
+<input type="date" id="notAvailable">
+</div>
+</div>
+
+<br>
+
+<button id="submitBtn" onclick="submitVote()">Submit Vote</button>
 <p id="status"></p>
+
+<hr>
+
+<div class="contacts">
+<p><b>For more information, contact</b></p>
+
+<a href="https://wa.me/94712334884" target="_blank">Charith Sir</a> |
+<a href="https://wa.me/94757560034" target="_blank">Coordinator</a> |
+<a href="https://wa.me/94788591931" target="_blank">Website Hoster (I'm anonymous)</a>
+</div>
 
 </div>
 
 <script type="module" src="script.js"></script>
-
 </body>
 </html>
