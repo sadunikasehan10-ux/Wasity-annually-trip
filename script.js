@@ -1,98 +1,84 @@
-// 🔥 Firebase config (PASTE YOUR REAL CONFIG)
-firebase.initializeApp({
+// 🔥 Firebase config
+const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID"
-});
+  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+};
+
+firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
 const db = firebase.database();
 
 let currentUser = null;
+let userIP = null;
 
-// ✅ Google Login
+// 🌍 Get IP
+fetch("https://api.ipify.org?format=json")
+  .then(res => res.json())
+  .then(data => userIP = data.ip);
+
+// 🔐 Auth state
+auth.onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user;
+    document.getElementById("loginStatus").innerText =
+      `Logged in as ${user.email}`;
+    checkAlreadyVoted(user);
+  }
+});
+
+// 🔑 Google Login
 function loginGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider)
-    .then(res => {
-      currentUser = res.user;
-      document.getElementById("loginStatus").innerText =
-        "Logged in as " + currentUser.email;
-    })
-    .catch(err => alert(err.message));
+  auth.signInWithPopup(provider);
 }
 
-// 🌐 Get IP
-async function getIP() {
-  const res = await fetch("https://api.ipify.org?format=json");
-  const data = await res.json();
-  return data.ip;
+// 🔑 Facebook Login
+function loginFacebook() {
+  const provider = new firebase.auth.FacebookAuthProvider();
+  auth.signInWithPopup(provider);
 }
 
-// 🔽 Custom vote toggle
-function checkCustom() {
-  document.getElementById("customVote").style.display =
-    vote.value === "custom" ? "block" : "none";
-}
+// 🚫 Check duplicate vote
+function checkAlreadyVoted(user) {
+  db.ref("votes").once("value", snap => {
+    let voted = false;
+    snap.forEach(child => {
+      const v = child.val();
+      if (
+        v.email === user.email ||
+        v.uid === user.uid ||
+        v.ip === userIP
+      ) voted = true;
+    });
 
-// 🗳 Submit Vote
-async function submitVote() {
-
-  if (!currentUser) {
-    alert("Please login first");
-    return;
-  }
-
-  const name = document.getElementById("name").value.trim();
-  if (!name) {
-    alert("Name required");
-    return;
-  }
-
-  const ip = await getIP();
-  const uid = currentUser.uid;
-  const email = currentUser.email;
-
-  const snapshot = await db.ref("votes").once("value");
-  let alreadyVoted = false;
-
-  snapshot.forEach(snap => {
-    const v = snap.val();
-    if (v.uid === uid || v.email === email || v.ip === ip) {
-      alreadyVoted = true;
+    if (voted) {
+      window.location.href = "results.html";
+    } else {
+      document.getElementById("submitBtn").disabled = false;
     }
   });
+}
 
-  if (alreadyVoted) {
-    alert("You already voted!");
-    return;
-  }
+// 🗳️ Submit vote
+function submitVote() {
+  if (!currentUser) return;
 
-  await db.ref("votes").push({
-    uid,
-    email,
-    ip,
-    name,
+  const voteData = {
+    uid: currentUser.uid,
+    email: currentUser.email,
+    provider: currentUser.providerData[0].providerId,
+    ip: userIP,
+    time: firebase.database.ServerValue.TIMESTAMP,
+    name: name.value,
     vote: vote.value,
-    customVote: customVote.value,
-    time: new Date().toISOString()
+    location: location.value,
+    parentPermission: parentPermission.value
+  };
+
+  db.ref("votes").push(voteData).then(() => {
+    window.location.href = "results.html";
   });
-
-  // 🔀 Redirect
-  const adminEmails = ["admin@gmail.com"];
-  if (adminEmails.includes(email)) {
-    window.location.href = "admin.html";
-  } else {
-    window.location.href = "user-results.html";
-  }
-}            ip: ip,
-            device: getDeviceInfo(),
-            time: new Date().toLocaleString()
-        });
-
-        document.getElementById("status").innerText =
-            "Vote saved successfully!";
-    }
-};
-
+}
