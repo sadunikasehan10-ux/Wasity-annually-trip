@@ -1,9 +1,7 @@
-if (typeof firebase === "undefined") {
-  alert("Firebase SDK failed to load. Check internet connection.");
-  throw new Error("Firebase not loaded");
-}
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* Firebase config */
 const firebaseConfig = {
   apiKey: "AIzaSyD5xIjemUx_rH4TzFBW_TJQ0Q7crdJ7IvY",
   authDomain: "wasity-trip.firebaseapp.com",
@@ -11,99 +9,63 @@ const firebaseConfig = {
   projectId: "wasity-trip"
 };
 
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-const auth = firebase.auth();
-const db = firebase.database();
+let userEmail = "";
+let userId = "";
 
-let loggedUser = null;
-
-/* ===== LOGIN ===== */
-window.loginGoogle = function () {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider)
-    .then(res => {
-      loggedUser = res.user;
-      alert("Google login success");
-    })
-    .catch(err => alert(err.message));
-};
-
-window.loginFacebook = function () {
-  const provider = new firebase.auth.FacebookAuthProvider();
-  auth.signInWithPopup(provider)
-    .then(res => {
-      loggedUser = res.user;
-      alert("Facebook login success");
-    })
-    .catch(err => alert(err.message));
-};
-
-/* ===== HELPERS ===== */
-function getDeviceInfo() {
-  return navigator.userAgent;
-}
-
-async function getIP() {
-  const r = await fetch("https://api.ipify.org?format=json");
-  return (await r.json()).ip;
+async function googleLogin() {
+  const result = await signInWithPopup(auth, provider);
+  userEmail = result.user.email;
+  userId = result.user.uid;
 }
 
 window.checkCustom = function () {
+  const vote = document.getElementById("vote").value;
   document.getElementById("customVote").style.display =
-    document.getElementById("vote").value === "custom" ? "block" : "none";
+    vote === "custom" ? "block" : "none";
 };
 
-/* ===== SUBMIT ===== */
 window.submitVote = async function () {
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
 
-  if (!loggedUser) {
-    alert("Please login first");
-    return;
-  }
+  if (!userEmail) await googleLogin();
 
   const name = document.getElementById("name").value.trim();
   if (!name) {
     alert("නම ඇතුලත් කරන්න");
+    btn.disabled = false;
     return;
   }
 
-  const ip = await getIP();
-  const snapshot = await db.ref("votes").once("value");
+  const snapshot = await get(ref(db, "votes"));
+  let already = false;
 
-  let voted = false;
-  snapshot.forEach(s => {
-    const v = s.val();
-    if (v.ip === ip || v.uid === loggedUser.uid || v.email === loggedUser.email) {
-      voted = true;
-    }
+  snapshot.forEach(snap => {
+    if (snap.val().userId === userId) already = true;
   });
 
-  if (voted) {
+  if (already) {
     alert("ඔබ දැනටමත් vote කරලා!");
+    window.location.href = "results.html";
     return;
   }
 
-  db.ref("votes").push({
+  await push(ref(db, "votes"), {
     name,
-    email: loggedUser.email,
-    uid: loggedUser.uid,
-    provider: loggedUser.providerData[0].providerId,
-    providerUserId: loggedUser.providerData[0].uid,
+    email: userEmail,
+    userId,
     vote: document.getElementById("vote").value,
     customVote: document.getElementById("customVote").value,
-    location: document.getElementById("location").value,
-    travelTime: document.getElementById("travelTime").value,
-    arrivalTime: document.getElementById("arrivalTime").value,
-    parentPermission: document.getElementById("parentPermission").value,
-    tripFrom: document.getElementById("tripFrom").value,
-    tripTo: document.getElementById("tripTo").value,
-    notAvailable: document.getElementById("notAvailable").value,
-    ip,
-    device: getDeviceInfo(),
-    time: new Date().toISOString()
+    time: new Date().toLocaleString()
   });
 
-  document.getElementById("status").innerText =
+  document.getElementById("status").innerText = "Vote saved!";
+  setTimeout(() => window.location.href = "results.html", 1000);
+};  document.getElementById("status").innerText =
     "✅ Vote saved successfully";
 };
