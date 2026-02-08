@@ -2,13 +2,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import {
   getAuth,
-  signInWithPopup,
   GoogleAuthProvider,
   FacebookAuthProvider,
+  signInWithRedirect,
+  getRedirectResult,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* Firebase Config */
+/* 🔥 Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyD5xIjemUx_rH4TzFBW_TJQ0Q7crdJ7IvY",
   authDomain: "wasity-trip.firebaseapp.com",
@@ -16,95 +17,142 @@ const firebaseConfig = {
   projectId: "wasity-trip"
 };
 
+/* Init */
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
+/* Providers */
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
 
-/* 🔐 User state */
-let userEmail = "";
+/* User state */
 let userId = "";
+let userEmail = "";
 let providerName = "";
 let providerUid = "";
 
-/* ✅ Listen auth state (IMPORTANT PART) */
+/* 🔐 Auth state listener (CRITICAL) */
 onAuthStateChanged(auth, (user) => {
-  if(user){
+  if (user) {
     userId = user.uid;
-    userEmail = user.email;
+    userEmail = user.email || "";
 
     const p = user.providerData[0];
-    providerName = p.providerId;
-    providerUid = p.uid;
+    providerName = p?.providerId || "";
+    providerUid = p?.uid || "";
   }
 });
 
-/* Login functions */
-async function googleLogin(){
-  await signInWithPopup(auth, googleProvider);
+/* 🔁 Handle redirect result */
+getRedirectResult(auth).catch((error) => {
+  console.error("Auth redirect error:", error);
+});
+
+/* 🔐 Login functions (REDIRECT SAFE) */
+async function googleLogin() {
+  await signInWithRedirect(auth, googleProvider);
 }
 
-async function facebookLogin(){
-  await signInWithPopup(auth, facebookProvider);
+async function facebookLogin() {
+  await signInWithRedirect(auth, facebookProvider);
 }
 
-/* Device */
-function getDeviceInfo(){
+/* Device info */
+function getDeviceInfo() {
   return navigator.userAgent;
 }
 
-/* IP */
-async function getIP(){
+/* Get IP */
+async function getIP() {
   const res = await fetch("https://api.ipify.org?format=json");
   const data = await res.json();
   return data.ip;
 }
 
-/* Custom vote toggle (unchanged) */
-window.checkCustom = function(){
+/* Custom vote toggle (UNCHANGED) */
+window.checkCustom = function () {
   const vote = document.getElementById("vote").value;
   document.getElementById("customVote").style.display =
     vote === "custom" ? "block" : "none";
 };
 
-/* 🚀 Submit vote */
-window.submitVote = async function(){
+/* 🚀 Submit Vote */
+window.submitVote = async function () {
 
   const btn = document.getElementById("submitBtn");
   btn.disabled = true;
 
-  /* 🔐 Force login */
-  if(!userId){
+  /* 🔐 Ensure login */
+  if (!userId) {
     const g = confirm("OK = Google Login\nCancel = Facebook Login");
-    if(g){
+    if (g) {
       await googleLogin();
-    }else{
+    } else {
       await facebookLogin();
     }
 
-    alert("Login complete. Submit again.");
+    alert("Login complete උනාට පස්සේ Submit ආයෙම click කරන්න");
     btn.disabled = false;
     return;
   }
 
   const name = document.getElementById("name").value.trim();
-  if(name === ""){
+  if (name === "") {
     alert("නම ඇතුලත් කරන්න");
     btn.disabled = false;
     return;
   }
 
   const ip = await getIP();
-  const snapshot = await get(child(ref(db),"votes"));
+  const snapshot = await get(child(ref(db), "votes"));
 
   let voted = false;
-  snapshot?.forEach(snap=>{
+  snapshot?.forEach(snap => {
     const v = snap.val();
-    if(
+    if (
       v.userId === userId ||
       v.providerUid === providerUid ||
+      v.email === userEmail ||
+      v.ip === ip
+    ) {
+      voted = true;
+    }
+  });
+
+  if (voted) {
+    alert("ඔබ දැනටමත් vote කරලා තියෙනවා ❌");
+    btn.disabled = false;
+    return;
+  }
+
+  /* 💾 Save vote */
+  push(ref(db, "votes"), {
+    name: name,
+
+    email: userEmail,
+    userId: userId,
+    provider: providerName,
+    providerUid: providerUid,
+
+    vote: document.getElementById("vote").value,
+    customVote: document.getElementById("customVote").value,
+    location: document.getElementById("location").value,
+    travelTime: document.getElementById("travelTime").value,
+    arrivalTime: document.getElementById("arrivalTime").value,
+    parentPermission: document.getElementById("parentPermission").value,
+    tripFrom: document.getElementById("tripFrom").value,
+    tripTo: document.getElementById("tripTo").value,
+    notAvailable: document.getElementById("notAvailable").value,
+
+    ip: ip,
+    device: getDeviceInfo(),
+    time: new Date().toISOString()
+  });
+
+  document.getElementById("status").innerText =
+    "✅ Vote saved successfully!";
+};      v.providerUid === providerUid ||
       v.email === userEmail ||
       v.ip === ip
     ){
