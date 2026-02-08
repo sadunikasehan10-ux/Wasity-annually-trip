@@ -4,7 +4,14 @@
 <meta charset="UTF-8">
 <title>Wasity Trip Voting</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <link rel="stylesheet" href="style.css">
+
+<!-- 🔥 Firebase COMPAT SDKs (required) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 </head>
 
 <body>
@@ -18,7 +25,7 @@
 So make sure your vote is correct before submit.
 </p>
 
-<!-- LOGIN BUTTONS (style untouched) -->
+<!-- ✅ LOGIN BUTTONS -->
 <button onclick="loginGoogle()">Login with Google</button>
 <button onclick="loginFacebook()">Login with Facebook</button>
 
@@ -101,6 +108,8 @@ So make sure your vote is correct before submit.
 
 </div>
 
-<script type="module" src="script.js"></script>
+<!-- ✅ NORMAL JS (NO MODULE) -->
+<script src="script.js"></script>
+
 </body>
 </html>
