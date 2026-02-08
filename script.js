@@ -1,17 +1,8 @@
-/* 🔥 DEBUG */
-alert("🔥 script.js LOADED");
-console.log("🔥 script.js loaded");
-
-/* ================= Firebase Imports ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import {
-  getAuth,
-  signInWithPopup,
-  GoogleAuthProvider
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* 🔥 Firebase Config */
+/* Firebase config */
 const firebaseConfig = {
   apiKey: "AIzaSyD5xIjemUx_rH4TzFBW_TJQ0Q7crdJ7IvY",
   authDomain: "wasity-trip.firebaseapp.com",
@@ -19,117 +10,69 @@ const firebaseConfig = {
   projectId: "wasity-trip"
 };
 
-/* Init */
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-/* User info */
 let userEmail = "";
 let userId = "";
 
-/* ✅ Google Login */
+/* Login */
 window.loginGoogle = async function () {
-  alert("Google login clicked");
-  try {
-    const result = await signInWithPopup(auth, provider);
-    userEmail = result.user.email;
-    userId = result.user.uid;
-    alert("Login success: " + userEmail);
-  } catch (err) {
-    alert("Login failed");
-    console.error(err);
-  }
+  const result = await signInWithPopup(auth, provider);
+  userEmail = result.user.email;
+  userId = result.user.uid;
 };
 
-/* ⚠ Facebook placeholder */
 window.loginFacebook = function () {
-  alert("Facebook login clicked (not implemented)");
+  alert("Facebook login not implemented");
 };
 
-/* Device info */
-function getDeviceInfo() {
-  return navigator.userAgent;
-}
-
-/* IP */
-async function getIP() {
-  const res = await fetch("https://api.ipify.org?format=json");
-  const data = await res.json();
-  return data.ip;
-}
-
-/* Custom vote toggle */
+/* Custom vote */
 window.checkCustom = function () {
-  alert("checkCustom triggered");
-  const vote = document.getElementById("vote").value;
   document.getElementById("customVote").style.display =
-    vote === "custom" ? "block" : "none";
+    document.getElementById("vote").value === "custom" ? "block" : "none";
 };
 
 /* Submit vote */
 window.submitVote = async function () {
-  alert("Submit button clicked");
-
   const btn = document.getElementById("submitBtn");
   btn.disabled = true;
 
-  /* Ensure login */
-  if (!userEmail) {
-    await loginGoogle();
-    if (!userEmail) {
-      btn.disabled = false;
-      return;
-    }
-  }
+  if (!userEmail) await loginGoogle();
 
   const name = document.getElementById("name").value.trim();
-  if (name === "") {
+  if (!name) {
     alert("නම ඇතුලත් කරන්න");
     btn.disabled = false;
     return;
   }
 
-  const ip = await getIP();
-  const dbRef = ref(db);
-
-  const snapshot = await get(child(dbRef, "votes"));
+  const snapshot = await get(child(ref(db), "votes"));
   let voted = false;
 
   if (snapshot.exists()) {
-    snapshot.forEach(snap => {
-      const v = snap.val();
-      if (v.email === userEmail || v.userId === userId) {
-        voted = true;
-      }
+    snapshot.forEach(s => {
+      const v = s.val();
+      if (v.email === userEmail || v.userId === userId) voted = true;
     });
   }
 
   if (voted) {
-    alert("ඔබ දැනටමත් vote කරලා!");
-    btn.disabled = false;
+    window.location.href = "results.html";
     return;
   }
 
   await push(ref(db, "votes"), {
-    name: name,
+    name,
     email: userEmail,
-    userId: userId,
+    userId,
     vote: document.getElementById("vote").value,
     customVote: document.getElementById("customVote").value,
     location: document.getElementById("location").value,
-    travelTime: document.getElementById("travelTime").value,
-    arrivalTime: document.getElementById("arrivalTime").value,
-    parentPermission: document.getElementById("parentPermission").value,
-    tripFrom: document.getElementById("tripFrom").value,
-    tripTo: document.getElementById("tripTo").value,
-    notAvailable: document.getElementById("notAvailable").value,
-    ip: ip,
-    device: getDeviceInfo(),
     time: new Date().toLocaleString()
   });
 
-  document.getElementById("status").innerText =
-    "✅ Vote saved successfully!";
+  window.location.href = "results.html";
 };
