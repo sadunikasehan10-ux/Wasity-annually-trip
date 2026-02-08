@@ -1,50 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Admin</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Admin Panel</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
-<div class="container">
-<h2>Admin Chart</h2>
-<canvas id="chart"></canvas>
-</div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+<h2>ADMIN RESULTS</h2>
+<p id="total"></p>
+
+<script>
+firebase.initializeApp({
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com"
+});
 
 const adminEmails = ["admin@gmail.com"];
 
-const app = initializeApp({
-  apiKey: "AIzaSyD5xIjemUx_rH4TzFBW_TJQ0Q7crdJ7IvY",
-  databaseURL: "https://wasity-trip-default-rtdb.firebaseio.com"
+firebase.auth().onAuthStateChanged(user => {
+  if (!user || !adminEmails.includes(user.email)) {
+    alert("Access denied");
+    window.location.href = "index.html";
+  }
 });
 
-const db = getDatabase(app);
-const auth = getAuth(app);
-
-onAuthStateChanged(auth,user=>{
-  if(!user || !adminEmails.includes(user.email)){
-    alert("Admin only");
-    location.href="index.html";
-    return;
-  }
-
-  get(ref(db,"votes")).then(snap=>{
-    let c={};
-    snap.forEach(s=>{
-      const k=s.val().customVote||s.val().vote;
-      c[k]=(c[k]||0)+1;
-    });
-    new Chart(chart,{
-      type:"bar",
-      data:{labels:Object.keys(c),datasets:[{label:"Votes",data:Object.values(c)}]}
-    });
-  });
+firebase.database().ref("votes").once("value").then(snap => {
+  document.getElementById("total").innerText =
+    "Total Votes: " + snap.numChildren();
 });
 </script>
+
 </body>
 </html>
