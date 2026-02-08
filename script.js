@@ -1,26 +1,12 @@
-/* ===============================
-   🔥 FIREBASE IMPORTS (v10)
-================================ */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getDatabase,
-  ref,
-  push,
-  get,
-  child
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
+import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import {
   getAuth,
-  GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
-  onAuthStateChanged
+  signInWithPopup,
+  GoogleAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* ===============================
-   🔥 FIREBASE CONFIG
-================================ */
+/* 🔥 Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyD5xIjemUx_rH4TzFBW_TJQ0Q7crdJ7IvY",
   authDomain: "wasity-trip.firebaseapp.com",
@@ -28,81 +14,105 @@ const firebaseConfig = {
   projectId: "wasity-trip"
 };
 
-/* ===============================
-   🔥 INIT
-================================ */
+/* Init */
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-/* ===============================
-   👤 USER STATE
-================================ */
-let currentUser = null;
-let userIP = "";
+/* User info */
+let userEmail = "";
+let userId = "";
 
-/* ===============================
-   🌍 GET IP
-================================ */
-async function loadIP(){
-  try {
+/* Google Login */
+async function googleLogin(){
+    const result = await signInWithPopup(auth, provider);
+    userEmail = result.user.email;
+    userId = result.user.uid;
+}
+
+/* Device */
+function getDeviceInfo(){
+    return navigator.userAgent;
+}
+
+/* IP */
+async function getIP(){
     const res = await fetch("https://api.ipify.org?format=json");
     const data = await res.json();
-    userIP = data.ip;
-  } catch {
-    userIP = "UNKNOWN";
-  }
+    return data.ip;
 }
-loadIP();
 
-/* ===============================
-   🔐 GOOGLE LOGIN (REDIRECT)
-================================ */
-window.loginGoogle = function () {
-  signInWithRedirect(auth, provider);
+/* Custom vote toggle */
+window.checkCustom = function(){
+    const vote = document.getElementById("vote").value;
+    document.getElementById("customVote").style.display =
+        vote === "custom" ? "block" : "none";
 };
 
-/* ===============================
-   🔁 HANDLE REDIRECT RESULT
-================================ */
-getRedirectResult(auth).catch(err => {
-  console.error(err);
-});
+/* Submit vote */
+window.submitVote = async function(){
 
-/* ===============================
-   🔐 AUTH STATE CHANGE
-================================ */
-onAuthStateChanged(auth, async user => {
-  if (user) {
-    currentUser = user;
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
 
-    document.getElementById("loginStatus").innerText =
-      "Logged in as " + user.email;
-
-    await checkAlreadyVoted();
-  } else {
-    document.getElementById("submitBtn").disabled = true;
-  }
-});
-
-/* ===============================
-   🚫 CHECK DUPLICATE VOTE
-================================ */
-async function checkAlreadyVoted() {
-  const snapshot = await get(child(ref(db), "votes"));
-  let voted = false;
-
-  snapshot?.forEach(snap => {
-    const v = snap.val();
-    if (
-      v.email === currentUser.email ||
-      v.uid === currentUser.uid ||
-      v.ip === userIP
-    ) {
-      voted = true;
+    /* Ensure login */
+    if(!userEmail){
+        await googleLogin();
     }
-  });
+
+    const name = document.getElementById("name").value.trim();
+    if(name === ""){
+        alert("නම ඇතුලත් කරන්න");
+        btn.disabled = false;
+        return;
+    }
+
+    const ip = await getIP();
+    const dbRef = ref(db);
+
+    get(child(dbRef,"votes")).then(snapshot=>{
+
+        let voted = false;
+
+        snapshot?.forEach(snap=>{
+            const v = snap.val();
+            if(v.ip === ip || v.email === userEmail){
+                voted = true;
+            }
+        });
+
+        if(voted){
+            alert("ඔබ දැනටමත් vote කරලා!");
+            return;
+        }
+
+        saveVote(ip);
+    });
+
+    function saveVote(ip){
+        push(ref(db,"votes"),{
+            name: name,
+            email: userEmail,      // ✅ REAL EMAIL
+            userId: userId,
+            vote: document.getElementById("vote").value,
+            customVote: document.getElementById("customVote").value,
+            location: document.getElementById("location").value,
+            travelTime: document.getElementById("travelTime").value,
+            arrivalTime: document.getElementById("arrivalTime").value,
+            parentPermission: document.getElementById("parentPermission").value,
+            tripFrom: document.getElementById("tripFrom").value,
+            tripTo: document.getElementById("tripTo").value,
+            notAvailable: document.getElementById("notAvailable").value,
+            ip: ip,
+            device: getDeviceInfo(),
+            time: new Date().toLocaleString()
+        });
+
+        document.getElementById("status").innerText =
+            "Vote saved successfully!";
+    }
+};
 
   if (voted) {
     window.location.href = "results.html";
