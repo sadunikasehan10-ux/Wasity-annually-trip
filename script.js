@@ -1,4 +1,9 @@
-/* Firebase SDKs */
+if (typeof firebase === "undefined") {
+  alert("Firebase SDK failed to load. Check internet connection.");
+  throw new Error("Firebase not loaded");
+}
+
+/* Firebase config */
 const firebaseConfig = {
   apiKey: "AIzaSyD5xIjemUx_rH4TzFBW_TJQ0Q7crdJ7IvY",
   authDomain: "wasity-trip.firebaseapp.com",
@@ -13,12 +18,12 @@ const db = firebase.database();
 
 let loggedUser = null;
 
-/* LOGIN */
+/* ===== LOGIN ===== */
 window.loginGoogle = function () {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider)
-    .then(result => {
-      loggedUser = result.user;
+    .then(res => {
+      loggedUser = res.user;
       alert("Google login success");
     })
     .catch(err => alert(err.message));
@@ -27,21 +32,21 @@ window.loginGoogle = function () {
 window.loginFacebook = function () {
   const provider = new firebase.auth.FacebookAuthProvider();
   auth.signInWithPopup(provider)
-    .then(result => {
-      loggedUser = result.user;
+    .then(res => {
+      loggedUser = res.user;
       alert("Facebook login success");
     })
     .catch(err => alert(err.message));
 };
 
-/* Helpers */
+/* ===== HELPERS ===== */
 function getDeviceInfo() {
   return navigator.userAgent;
 }
 
 async function getIP() {
-  const res = await fetch("https://api.ipify.org?format=json");
-  return (await res.json()).ip;
+  const r = await fetch("https://api.ipify.org?format=json");
+  return (await r.json()).ip;
 }
 
 window.checkCustom = function () {
@@ -49,7 +54,7 @@ window.checkCustom = function () {
     document.getElementById("vote").value === "custom" ? "block" : "none";
 };
 
-/* SUBMIT */
+/* ===== SUBMIT ===== */
 window.submitVote = async function () {
 
   if (!loggedUser) {
@@ -81,7 +86,7 @@ window.submitVote = async function () {
 
   db.ref("votes").push({
     name,
-    email: loggedUser.email || null,
+    email: loggedUser.email,
     uid: loggedUser.uid,
     provider: loggedUser.providerData[0].providerId,
     providerUserId: loggedUser.providerData[0].uid,
