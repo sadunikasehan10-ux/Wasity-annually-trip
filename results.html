@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<title>Results</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+<h2>Voting Results</h2>
+<p>Total Voters: <b id="total">0</b></p>
+<ul id="list"></ul>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyD5xIjemUx_rH4TzFBW_TJQ0Q7crdJ7IvY",
+  databaseURL: "https://wasity-trip-default-rtdb.firebaseio.com"
+});
+
+const db = getDatabase(app);
+
+get(ref(db,"votes")).then(snap=>{
+  let counts = {}, total = 0;
+  snap.forEach(s=>{
+    const v = s.val();
+    const key = v.customVote || v.vote;
+    counts[key] = (counts[key] || 0) + 1;
+    total++;
+  });
+  document.getElementById("total").innerText = total;
+  Object.keys(counts).forEach(k=>{
+    const li = document.createElement("li");
+    li.innerText = `${k} : ${counts[k]}`;
+    document.getElementById("list").appendChild(li);
+  });
+});
+</script>
+</body>
+</html>
