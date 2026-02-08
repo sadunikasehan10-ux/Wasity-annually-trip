@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html>
+<html lang="si">
 <head>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<meta charset="UTF-8">
-<title>Results</title>
+  <meta charset="UTF-8">
+  <title>Voting Results</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-<h2>Voting Results</h2>
 
-<p id="summary"></p>
-<p id="myVote"></p>
+<div class="container">
+  <h2>📊 Trip Voting Results</h2>
+  <ul id="resultsList">
+    <li>Loading...</li>
+  </ul>
 
-<script src="results.js"></script>
+  <br>
+  <a href="index.html">⬅ Back to vote</a>
+</div>
+
+<script type="module" src="./results.js"></script>
 </body>
 </html>
