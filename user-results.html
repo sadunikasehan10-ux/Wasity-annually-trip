@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <title>Results</title>
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
 <h2>Voting Results</h2>
-<ul id="list"></ul>
+<ul id="results"></ul>
 
 <script>
 firebase.initializeApp({
@@ -17,19 +17,19 @@ firebase.initializeApp({
   databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com"
 });
 
-firebase.database().ref("votes").once("value").then(snap => {
-  let count = {};
+firebase.database().ref("votes").on("value", snap => {
+  const counts = {};
   snap.forEach(s => {
     const v = s.val().vote;
-    count[v] = (count[v] || 0) + 1;
+    counts[v] = (counts[v] || 0) + 1;
   });
 
-  for (let k in count) {
-    document.getElementById("list").innerHTML +=
-      `<li>${k} : ${count[k]}</li>`;
+  const ul = document.getElementById("results");
+  ul.innerHTML = "";
+  for (let k in counts) {
+    ul.innerHTML += `<li>${k} : ${counts[k]}</li>`;
   }
 });
 </script>
-
 </body>
 </html>
