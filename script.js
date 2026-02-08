@@ -207,3 +207,12 @@ window.submitVote = async function () {
 
   window.location.href = "results.html";
 };
+console.log("JS OK");
+
+window.loginGoogle = function () {
+  alert("Google login clicked");
+};
+
+window.submitVote = function () {
+  alert("Submit clicked");
+};
