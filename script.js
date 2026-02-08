@@ -1,15 +1,19 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import {
+  getDatabase,
+  ref,
+  push,
+  get,
+  child
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import {
   getAuth,
+  signInWithPopup,
   GoogleAuthProvider,
-  FacebookAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
-  onAuthStateChanged
+  FacebookAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* 🔥 Firebase Config */
+/* 🔥 Firebase config */
 const firebaseConfig = {
   apiKey: "AIzaSyD5xIjemUx_rH4TzFBW_TJQ0Q7crdJ7IvY",
   authDomain: "wasity-trip.firebaseapp.com",
@@ -22,89 +26,138 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-/* Providers */
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
 
-/* User state */
-let userId = "";
-let userEmail = "";
-let providerName = "";
-let providerUid = "";
+/* Logged user info */
+let loggedUser = null;
 
-/* 🔐 Auth state listener (MOST IMPORTANT) */
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    userId = user.uid;
-    userEmail = user.email || "";
+/* ================= LOGIN ================= */
 
-    const p = user.providerData[0];
-    providerName = p?.providerId || "";
-    providerUid = p?.uid || "";
-  }
-});
-
-/* Handle redirect result (required for GitHub Pages) */
-getRedirectResult(auth).catch((error) => {
-  console.error("Auth redirect error:", error.code, error.message);
-});
-
-/* 🔐 Login functions (redirect – popup safe) */
-async function googleLogin() {
-  await signInWithRedirect(auth, googleProvider);
+async function loginWithGoogle() {
+  const result = await signInWithPopup(auth, googleProvider);
+  loggedUser = result.user;
 }
 
-async function facebookLogin() {
-  await signInWithRedirect(auth, facebookProvider);
+async function loginWithFacebook() {
+  const result = await signInWithPopup(auth, facebookProvider);
+  loggedUser = result.user;
 }
 
-/* Device info */
+/* ================= HELPERS ================= */
+
 function getDeviceInfo() {
   return navigator.userAgent;
 }
 
-/* Get IP address */
 async function getIP() {
   const res = await fetch("https://api.ipify.org?format=json");
   const data = await res.json();
   return data.ip;
 }
 
-/* Custom vote toggle (UNCHANGED) */
+/* Custom vote toggle */
 window.checkCustom = function () {
   const vote = document.getElementById("vote").value;
   document.getElementById("customVote").style.display =
     vote === "custom" ? "block" : "none";
 };
 
-/* 🚀 Submit vote */
+/* ================= SUBMIT VOTE ================= */
+
 window.submitVote = async function () {
 
   const btn = document.getElementById("submitBtn");
   btn.disabled = true;
 
-  /* 🔐 Force login first */
-  if (!userId) {
-    const useGoogle = confirm(
-      "OK = Google Login\nCancel = Facebook Login"
-    );
+  try {
 
-    if (useGoogle) {
-      await googleLogin();
-    } else {
-      await facebookLogin();
+    /* 🔐 Login choice */
+    if (!loggedUser) {
+      const choice = confirm(
+        "OK = Google Login\nCancel = Facebook Login"
+      );
+      if (choice) {
+        await loginWithGoogle();
+      } else {
+        await loginWithFacebook();
+      }
     }
 
-    alert("Login complete වුණාට පස්සේ Submit button එක ආයෙම click කරන්න");
-    btn.disabled = false;
-    return;
+    if (!loggedUser) {
+      alert("Login failed");
+      btn.disabled = false;
+      return;
+    }
+
+    const name = document.getElementById("name").value.trim();
+    if (name === "") {
+      alert("නම ඇතුලත් කරන්න");
+      btn.disabled = false;
+      return;
+    }
+
+    const ip = await getIP();
+    const dbRef = ref(db);
+
+    /* 🔎 Check double vote */
+    const snapshot = await get(child(dbRef, "votes"));
+    let voted = false;
+
+    snapshot?.forEach(snap => {
+      const v = snap.val();
+      if (
+        v.ip === ip ||
+        v.email === loggedUser.email ||
+        v.uid === loggedUser.uid
+      ) {
+        voted = true;
+      }
+    });
+
+    if (voted) {
+      alert("ඔබ දැනටමත් vote කරලා!");
+      btn.disabled = false;
+      return;
+    }
+
+    /* 💾 Save vote */
+    await push(ref(db, "votes"), {
+      name: name,
+
+      /* 🔐 AUTH INFO */
+      email: loggedUser.email || null,
+      uid: loggedUser.uid,
+      provider: loggedUser.providerData[0]?.providerId || null,
+      providerId: loggedUser.providerData[0]?.uid || null,
+
+      /* 🗳️ VOTE DATA */
+      vote: document.getElementById("vote").value,
+      customVote: document.getElementById("customVote").value,
+      location: document.getElementById("location").value,
+      travelTime: document.getElementById("travelTime").value,
+      arrivalTime: document.getElementById("arrivalTime").value,
+      parentPermission: document.getElementById("parentPermission").value,
+      tripFrom: document.getElementById("tripFrom").value,
+      tripTo: document.getElementById("tripTo").value,
+      notAvailable: document.getElementById("notAvailable").value,
+
+      /* 🌐 META */
+      ip: ip,
+      device: getDeviceInfo(),
+      time: new Date().toISOString()
+    });
+
+    document.getElementById("status").innerText =
+      "✅ Vote saved successfully!";
+
+  } catch (err) {
+    console.error(err);
+    alert("Error: " + err.message);
   }
 
-  const name = document.getElementById("name").value.trim();
-  if (name === "") {
-    alert("නම ඇතුලත් කරන්න");
-    btn.disabled = false;
-    return;
+  btn.disabled = false;
+};    return;
   }
 
   const ip = await getIP();
