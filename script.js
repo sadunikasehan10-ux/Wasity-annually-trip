@@ -32,7 +32,7 @@ let userEmail = "";
 let providerName = "";
 let providerUid = "";
 
-/* 🔐 Auth state listener (CRITICAL) */
+/* 🔐 Auth state listener (MOST IMPORTANT) */
 onAuthStateChanged(auth, (user) => {
   if (user) {
     userId = user.uid;
@@ -44,12 +44,12 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-/* 🔁 Handle redirect result */
+/* Handle redirect result (required for GitHub Pages) */
 getRedirectResult(auth).catch((error) => {
-  console.error("Auth redirect error:", error);
+  console.error("Auth redirect error:", error.code, error.message);
 });
 
-/* 🔐 Login functions (REDIRECT SAFE) */
+/* 🔐 Login functions (redirect – popup safe) */
 async function googleLogin() {
   await signInWithRedirect(auth, googleProvider);
 }
@@ -63,7 +63,7 @@ function getDeviceInfo() {
   return navigator.userAgent;
 }
 
-/* Get IP */
+/* Get IP address */
 async function getIP() {
   const res = await fetch("https://api.ipify.org?format=json");
   const data = await res.json();
@@ -77,22 +77,25 @@ window.checkCustom = function () {
     vote === "custom" ? "block" : "none";
 };
 
-/* 🚀 Submit Vote */
+/* 🚀 Submit vote */
 window.submitVote = async function () {
 
   const btn = document.getElementById("submitBtn");
   btn.disabled = true;
 
-  /* 🔐 Ensure login */
+  /* 🔐 Force login first */
   if (!userId) {
-    const g = confirm("OK = Google Login\nCancel = Facebook Login");
-    if (g) {
+    const useGoogle = confirm(
+      "OK = Google Login\nCancel = Facebook Login"
+    );
+
+    if (useGoogle) {
       await googleLogin();
     } else {
       await facebookLogin();
     }
 
-    alert("Login complete උනාට පස්සේ Submit ආයෙම click කරන්න");
+    alert("Login complete වුණාට පස්සේ Submit button එක ආයෙම click කරන්න");
     btn.disabled = false;
     return;
   }
@@ -105,6 +108,57 @@ window.submitVote = async function () {
   }
 
   const ip = await getIP();
+  const snapshot = await get(child(ref(db), "votes"));
+
+  let voted = false;
+  snapshot?.forEach(snap => {
+    const v = snap.val();
+    if (
+      v.userId === userId ||          // Firebase UID
+      v.providerUid === providerUid ||// Google / Facebook ID
+      v.email === userEmail ||        // Email
+      v.ip === ip                     // IP backup
+    ) {
+      voted = true;
+    }
+  });
+
+  if (voted) {
+    alert("ඔබ දැනටමත් vote කරලා තියෙනවා ❌");
+    btn.disabled = false;
+    return;
+  }
+
+  /* 💾 Save vote */
+  push(ref(db, "votes"), {
+    name: name,
+
+    /* 🔐 Auth info */
+    email: userEmail,
+    userId: userId,
+    provider: providerName,
+    providerUid: providerUid,
+
+    /* 🗳️ Vote data */
+    vote: document.getElementById("vote").value,
+    customVote: document.getElementById("customVote").value,
+    location: document.getElementById("location").value,
+    travelTime: document.getElementById("travelTime").value,
+    arrivalTime: document.getElementById("arrivalTime").value,
+    parentPermission: document.getElementById("parentPermission").value,
+    tripFrom: document.getElementById("tripFrom").value,
+    tripTo: document.getElementById("tripTo").value,
+    notAvailable: document.getElementById("notAvailable").value,
+
+    /* 🌍 Meta */
+    ip: ip,
+    device: getDeviceInfo(),
+    time: new Date().toISOString()
+  });
+
+  document.getElementById("status").innerText =
+    "✅ Vote saved successfully!";
+};  const ip = await getIP();
   const snapshot = await get(child(ref(db), "votes"));
 
   let voted = false;
