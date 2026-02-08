@@ -10,64 +10,95 @@
 <body>
 
 <div class="container">
-  <h2>Wasity Yearly Trip</h2>
 
-  <p class="important">
-    ⚠️ <b>Important :</b> එක් පුද්ගලයෙකුට vote එකක් පමණයි.
-  </p>
+<h2>Wasity Yearly Trip</h2>
 
-  <label>ඔබගේ නම</label>
-  <input type="text" id="name">
+<p class="important">
+⚠️ <b>Important :</b> For one user only can vote once.  
+So make sure your vote is correct before submit.
+</p>
 
-  <label>චාරිකාව යා යුතු ස්ථානය</label>
-  <select id="vote" onchange="checkCustom()">
-    <option value="">-- තෝරන්න --</option>
-    <option>නුවර</option>
-    <option>ගාල්ල</option>
-    <option>පුත්තලම</option>
-    <option>සිගිරිය</option>
-    <option>කුරුණෑගල</option>
-    <option>ගම්පහ</option>
-    <option>ඩුබායි</option>
-    <option value="custom">Custom</option>
-  </select>
+<!-- LOGIN BUTTONS (style untouched) -->
+<button onclick="loginGoogle()">Login with Google</button>
+<button onclick="loginFacebook()">Login with Facebook</button>
 
-  <input type="text" id="customVote" placeholder="Custom place" style="display:none;">
+<br><br>
 
-  <label>පදිංචි ස්ථානය</label>
-  <input type="text" id="location">
+<label>ඔබගේ නම</label>
+<input type="text" id="name">
 
-  <label>ගමන් කරන වෙලාව</label>
-  <input type="text" id="travelTime">
+<hr>
 
-  <label>සාමාන්‍යයෙන් පැමිණෙන වෙලාව</label>
-  <input type="text" id="arrivalTime">
+<label>චාරිකාව යා යුතු ස්ථානය</label>
+<select id="vote" onchange="checkCustom()">
+<option>නුවර</option>
+<option>ගාල්ල</option>
+<option>පුත්තලම</option>
+<option>සිගිරිය</option>
+<option>කුරුණෑගල</option>
+<option>ගම්පහ</option>
+<option>ඩුබායි</option>
+<option value="custom">Create a custom answer</option>
+</select>
 
-  <label>දෙමාපිය කැමැත්ත</label>
-  <select id="parentPermission">
-    <option>හැක</option>
-    <option>නොහැක</option>
-  </select>
+<input type="text" id="customVote" placeholder="Custom place" style="display:none;">
 
-  <label>Trip From</label>
-  <input type="date" id="tripFrom">
+<hr>
 
-  <label>Trip To</label>
-  <input type="date" id="tripTo">
-
-  <label>යා නොහැකි දිනය</label>
-  <input type="date" id="notAvailable">
-
-  <div class="login-buttons">
-    <button onclick="googleLogin()">Google Login</button>
-    <button onclick="facebookLogin()">Facebook Login</button>
+<div class="row">
+  <div class="field">
+    <label>පදිංචි ස්ථානය</label>
+    <input type="text" id="location">
   </div>
 
-  <button class="submit" onclick="submitVote()" id="submitBtn">
-    Submit Vote
-  </button>
+  <div class="field">
+    <label>පදිංචි ස්ථානයේ සිට වාසිටි කිරිබත්ගොඩ ආයතනයට පැමිණීමට ගත වන වෙලාව</label>
+    <input type="text" id="travelTime">
+  </div>
 
-  <p id="status"></p>
+  <div class="field">
+    <label>සාමාන්යෙන් වාසිටි කිරිබත්ගොඩ ආයතනයට පැමිණිය හැකි වෙලාව</label>
+    <input type="text" id="arrivalTime">
+  </div>
+</div>
+
+<hr>
+
+<label>චාරිකාව සදහා දෙමාපිය කැමැත්ත ලබා ගත</label>
+<select id="parentPermission">
+<option>හැක</option>
+<option>නොහැක</option>
+</select>
+
+<hr>
+
+<div class="row">
+  <div class="field">
+    <label>චාරිකාව යා යුතු කාල සීමාව</label>
+    <input type="date" id="tripFrom">
+    <input type="date" id="tripTo">
+  </div>
+
+  <div class="field">
+    <label>ඔබට පෞද්ගලිකව යා නොහැකි කාල සීමාවන් හෝ දිනය</label>
+    <input type="date" id="notAvailable">
+  </div>
+</div>
+
+<br>
+
+<button id="submitBtn" onclick="submitVote()">Submit Vote</button>
+<p id="status"></p>
+
+<hr>
+
+<div class="contacts">
+<p><b>For more information, contact</b></p>
+<a href="https://wa.me/94712334884" target="_blank">Charith Sir</a> |
+<a href="https://wa.me/94757560034" target="_blank">Coordinator</a> |
+<a href="https://wa.me/94788591931" target="_blank">Website Hoster</a>
+</div>
+
 </div>
 
 <script type="module" src="script.js"></script>
