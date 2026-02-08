@@ -2,7 +2,6 @@
 <html lang="si">
 <head>
 
-<!-- 🔥 Firebase SDKs (DO NOT MOVE) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -10,43 +9,55 @@
 <meta charset="UTF-8">
 <title>Wasity Trip Voting</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <link rel="stylesheet" href="style.css">
-</head>
 
+</head>
 <body>
 
 <div class="container">
-<h2>Wasity Yearly Trip</h2>
+
+<h2>Wasity Yearly Trip Voting</h2>
 
 <p class="important">
-⚠️ <b>Important :</b> For one user only can vote once.
+⚠️ Login අනිවාර්යයි. එක් user කෙනෙකුට එක් vote එකක් පමණි.
 </p>
 
 <button onclick="loginGoogle()">Login with Google</button>
-<p id="loginStatus"></p>
+<button onclick="loginFacebook()">Login with Facebook</button>
 
-<label>ඔබගේ නම</label>
-<input type="text" id="name">
+<p id="loginStatus"></p>
 
 <hr>
 
+<form id="voteForm">
+
+<label>ඔබගේ නම</label>
+<input type="text" id="name" required>
+
 <label>චාරිකාව යා යුතු ස්ථානය</label>
-<select id="vote" onchange="checkCustom()">
+<select id="vote" required>
 <option>නුවර</option>
 <option>ගාල්ල</option>
 <option>පුත්තලම</option>
 <option>සිගිරිය</option>
-<option>කුරුණෑගල</option>
-<option>ගම්පහ</option>
 <option>ඩුබායි</option>
-<option value="custom">Create a custom answer</option>
 </select>
 
-<input type="text" id="customVote" placeholder="Custom place" style="display:none;">
+<label>පදිංචි ස්ථානය</label>
+<input type="text" id="location" required>
 
-<br><br>
-<button onclick="submitVote()">Submit Vote</button>
+<label>දෙමාපිය කැමැත්ත</label>
+<select id="parentPermission" required>
+<option>හැක</option>
+<option>නොහැක</option>
+</select>
+
+<button type="button" id="submitBtn" onclick="submitVote()" disabled>
+Submit Vote
+</button>
+
+</form>
+
 <p id="status"></p>
 
 </div>
