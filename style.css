@@ -1,57 +1,41 @@
 body {
   font-family: Arial, sans-serif;
-  background: #f2f2f2;
+  background: #f5f5f5;
 }
 
 .container {
-  max-width: 500px;
+  max-width: 600px;
   margin: auto;
-  background: #fff;
+  background: white;
   padding: 20px;
-  border-radius: 10px;
-}
-
-h2 {
-  text-align: center;
-}
-
-label {
-  display: block;
-  margin-top: 12px;
-  font-weight: bold;
+  border-radius: 8px;
 }
 
 input, select, button {
   width: 100%;
-  padding: 10px;
+  padding: 8px;
   margin-top: 5px;
 }
 
 button {
   cursor: pointer;
-  border: none;
-  border-radius: 6px;
-}
-
-.login-buttons button {
-  margin-top: 10px;
-  background: #4267B2;
-  color: white;
-}
-
-.login-buttons button:first-child {
-  background: #db4437;
-}
-
-.submit {
-  margin-top: 15px;
-  background: #2ecc71;
-  color: white;
-  font-size: 16px;
 }
 
 .important {
   background: #fff3cd;
   padding: 10px;
-  border-radius: 6px;
+  border-radius: 5px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.field {
+  flex: 1;
+}
+
+.contacts a {
+  text-decoration: none;
 }
