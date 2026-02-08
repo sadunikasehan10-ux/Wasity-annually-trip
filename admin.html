@@ -1,38 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Admin Panel</title>
-
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
-<h2>ADMIN RESULTS</h2>
-<p id="total"></p>
+<h2>Admin – Full Votes</h2>
+<table border="1">
+<tr><th>Name</th><th>Email</th><th>Vote</th><th>IP</th></tr>
+<tbody id="rows"></tbody>
+</table>
 
-<script>
-firebase.initializeApp({
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com"
-});
-
-const adminEmails = ["admin@gmail.com"];
-
-firebase.auth().onAuthStateChanged(user => {
-  if (!user || !adminEmails.includes(user.email)) {
-    alert("Access denied");
-    window.location.href = "index.html";
-  }
-});
-
-firebase.database().ref("votes").once("value").then(snap => {
-  document.getElementById("total").innerText =
-    "Total Votes: " + snap.numChildren();
-});
-</script>
-
+<script src="admin.js"></script>
 </body>
 </html>
