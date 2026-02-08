@@ -1,110 +1,30 @@
 <!DOCTYPE html>
-<html lang="si">
+<html>
 <head>
+  <meta charset="UTF-8">
+  <title>Vote</title>
+  <link rel="stylesheet" href="style.css">
 
-<!-- 🔥 Firebase SDKs – MUST BE AT TOP (DO NOT MOVE) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-<meta charset="UTF-8">
-<title>Wasity Trip Voting</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link rel="stylesheet" href="style.css">
-
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 
 <body>
+  <h2>Vote Now</h2>
 
-<div class="container">
+  <button onclick="googleLogin()">Login with Google</button>
 
-<h2>Wasity Yearly Trip</h2>
-
-<p class="important">
-⚠️ <b>Important :</b> For one user only can vote once.  
-So make sure your vote is correct before submit.
-</p>
-
-<!-- 🔐 LOGIN BUTTONS -->
-<button onclick="loginGoogle()">Login with Google</button>
-<button onclick="loginFacebook()">Login with Facebook</button>
-
-<br><br>
-
-<label>ඔබගේ නම</label>
-<input type="text" id="name">
-
-<hr>
-
-<label>චාරිකාව යා යුතු ස්ථානය</label>
-<select id="vote" onchange="checkCustom()">
-<option>නුවර</option>
-<option>ගාල්ල</option>
-<option>පුත්තලම</option>
-<option>සිගිරිය</option>
-<option>කුරුණෑගල</option>
-<option>ගම්පහ</option>
-<option>ඩුබායි</option>
-<option value="custom">Create a custom answer</option>
-</select>
-
-<input type="text" id="customVote" placeholder="Custom place" style="display:none;">
-
-<hr>
-
-<div class="row">
-  <div class="field">
-    <label>පදිංචි ස්ථානය</label>
-    <input type="text" id="location">
+  <div id="voteBox" style="display:none;">
+    <button onclick="submitVote('Option A')">Option A</button>
+    <button onclick="submitVote('Option B')">Option B</button>
+    <button onclick="submitVote('Option C')">Option C</button>
   </div>
 
-  <div class="field">
-    <label>පදිංචි ස්ථානයේ සිට වාසිටි කිරිබත්ගොඩ ආයතනයට පැමිණීමට ගත වන වෙලාව</label>
-    <input type="text" id="travelTime">
-  </div>
-
-  <div class="field">
-    <label>සාමාන්යෙන් වාසිටි කිරිබත්ගොඩ ආයතනයට පැමිණිය හැකි වෙලාව</label>
-    <input type="text" id="arrivalTime">
-  </div>
-</div>
-
-<hr>
-
-<label>චාරිකාව සදහා දෙමාපිය කැමැත්ත ලබා ගත</label>
-<select id="parentPermission">
-<option>හැක</option>
-<option>නොහැක</option>
-</select>
-
-<hr>
-
-<div class="row">
-  <div class="field">
-    <label>චාරිකාව යා යුතු කාල සීමාව</label>
-    <input type="date" id="tripFrom">
-    <input type="date" id="tripTo">
-  </div>
-
-  <div class="field">
-    <label>ඔබට පෞද්ගලිකව යා නොහැකි කාල සීමාවන් හෝ දිනය</label>
-    <input type="date" id="notAvailable">
-  </div>
-</div>
-
-<br>
-
-<button id="submitBtn" onclick="submitVote()">Submit Vote</button>
-<p id="status"></p>
-
-<hr>
-
-<div class="contacts">
-<p><b>For more information, contact</b></p>
-<a href="https://wa.me/94712334884" target="_blank">Charith Sir</a> |
-<a href="https://wa.me/94757560034" target="_blank">Coordinator</a> |
-<a href="https://wa.me/94788591931" target="_blank">Website Hoster</a>
+  <script src="script.js"></script>
+</body>
+</html><a href="https://wa.me/94788591931" target="_blank">Website Hoster</a>
 </div>
 
 </div>
