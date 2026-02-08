@@ -1,18 +1,27 @@
-// 🔥 Firebase Config
+// 🔥 Firebase config (PASTE YOUR REAL CONFIG)
 firebase.initializeApp({
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
   databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT"
+  projectId: "YOUR_PROJECT_ID"
 });
 
 const auth = firebase.auth();
 const db = firebase.database();
 
-// 🔑 Admin emails
-const adminEmails = [
-  "admin@gmail.com"
-];
+let currentUser = null;
+
+// ✅ Google Login
+function loginGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider)
+    .then(res => {
+      currentUser = res.user;
+      document.getElementById("loginStatus").innerText =
+        "Logged in as " + currentUser.email;
+    })
+    .catch(err => alert(err.message));
+}
 
 // 🌐 Get IP
 async function getIP() {
@@ -21,52 +30,60 @@ async function getIP() {
   return data.ip;
 }
 
-// 🔐 Google Login
-function loginGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).then(res => {
-    const email = res.user.email;
-
-    if (adminEmails.includes(email)) {
-      window.location.href = "admin.html";
-    } else {
-      document.getElementById("status").innerText =
-        "Logged in: " + email;
-    }
-  }).catch(err => {
-    alert(err.message);
-  });
+// 🔽 Custom vote toggle
+function checkCustom() {
+  document.getElementById("customVote").style.display =
+    vote.value === "custom" ? "block" : "none";
 }
 
 // 🗳 Submit Vote
 async function submitVote() {
-  const user = auth.currentUser;
-  if (!user) {
+
+  if (!currentUser) {
     alert("Please login first");
     return;
   }
 
-  const name = document.getElementById("name").value;
-  const vote = document.getElementById("vote").value;
-  const ip = await getIP();
-
-  const uid = user.uid;
-
-  // ❌ Block double vote
-  const snap = await db.ref("votes/" + uid).once("value");
-  if (snap.exists()) {
-    alert("You already voted!");
-    window.location.href = "user-results.html";
+  const name = document.getElementById("name").value.trim();
+  if (!name) {
+    alert("Name required");
     return;
   }
 
-  db.ref("votes/" + uid).set({
-    name,
-    vote,
-    email: user.email,
-    ip,
-    time: Date.now()
-  }).then(() => {
-    window.location.href = "user-results.html";
+  const ip = await getIP();
+  const uid = currentUser.uid;
+  const email = currentUser.email;
+
+  const snapshot = await db.ref("votes").once("value");
+  let alreadyVoted = false;
+
+  snapshot.forEach(snap => {
+    const v = snap.val();
+    if (v.uid === uid || v.email === email || v.ip === ip) {
+      alreadyVoted = true;
+    }
   });
+
+  if (alreadyVoted) {
+    alert("You already voted!");
+    return;
+  }
+
+  await db.ref("votes").push({
+    uid,
+    email,
+    ip,
+    name,
+    vote: vote.value,
+    customVote: customVote.value,
+    time: new Date().toISOString()
+  });
+
+  // 🔀 Redirect
+  const adminEmails = ["admin@gmail.com"];
+  if (adminEmails.includes(email)) {
+    window.location.href = "admin.html";
+  } else {
+    window.location.href = "user-results.html";
+  }
 }
