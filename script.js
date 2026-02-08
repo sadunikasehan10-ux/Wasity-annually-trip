@@ -1,94 +1,179 @@
+/* ===============================
+   🔥 FIREBASE IMPORTS (v10)
+================================ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getDatabase,
+  ref,
+  push,
+  get,
+  child
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithRedirect,
+  getRedirectResult,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+/* ===============================
+   🔥 FIREBASE CONFIG
+================================ */
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-  projectId: "YOUR_PROJECT"
+  apiKey: "AIzaSyD5xIjemUx_rH4TzFBW_TJQ0Q7crdJ7IvY",
+  authDomain: "wasity-trip.firebaseapp.com",
+  databaseURL: "https://wasity-trip-default-rtdb.firebaseio.com",
+  projectId: "wasity-trip"
 };
 
-firebase.initializeApp(firebaseConfig);
+/* ===============================
+   🔥 INIT
+================================ */
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-const auth = firebase.auth();
-const db = firebase.database();
-
+/* ===============================
+   👤 USER STATE
+================================ */
 let currentUser = null;
 let userIP = "";
 
-// 🌍 IP
-fetch("https://api.ipify.org?format=json")
-  .then(r => r.json())
-  .then(d => userIP = d.ip);
+/* ===============================
+   🌍 GET IP
+================================ */
+async function loadIP(){
+  try {
+    const res = await fetch("https://api.ipify.org?format=json");
+    const data = await res.json();
+    userIP = data.ip;
+  } catch {
+    userIP = "UNKNOWN";
+  }
+}
+loadIP();
 
-// 🔐 Auth watcher
-auth.onAuthStateChanged(user => {
+/* ===============================
+   🔐 GOOGLE LOGIN (REDIRECT)
+================================ */
+window.loginGoogle = function () {
+  signInWithRedirect(auth, provider);
+};
+
+/* ===============================
+   🔁 HANDLE REDIRECT RESULT
+================================ */
+getRedirectResult(auth).catch(err => {
+  console.error(err);
+});
+
+/* ===============================
+   🔐 AUTH STATE CHANGE
+================================ */
+onAuthStateChanged(auth, async user => {
   if (user) {
     currentUser = user;
-    loginStatus.innerText = `Logged in as ${user.email}`;
-    checkIfAlreadyVoted();
+
+    document.getElementById("loginStatus").innerText =
+      "Logged in as " + user.email;
+
+    await checkAlreadyVoted();
   } else {
-    submitBtn.disabled = true;
+    document.getElementById("submitBtn").disabled = true;
   }
 });
 
-function loginGoogle() {
-  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-}
+/* ===============================
+   🚫 CHECK DUPLICATE VOTE
+================================ */
+async function checkAlreadyVoted() {
+  const snapshot = await get(child(ref(db), "votes"));
+  let voted = false;
 
-function loginFacebook() {
-  auth.signInWithPopup(new firebase.auth.FacebookAuthProvider());
-}
-
-// 🚫 Duplicate check
-function checkIfAlreadyVoted() {
-  db.ref("votes").once("value", snap => {
-    let voted = false;
-    snap.forEach(c => {
-      const v = c.val();
-      if (
-        v.email === currentUser.email ||
-        v.uid === currentUser.uid ||
-        v.ip === userIP
-      ) voted = true;
-    });
-
-    if (voted) {
-      location.href = "results.html";
-    } else {
-      submitBtn.disabled = false;
+  snapshot?.forEach(snap => {
+    const v = snap.val();
+    if (
+      v.email === currentUser.email ||
+      v.uid === currentUser.uid ||
+      v.ip === userIP
+    ) {
+      voted = true;
     }
   });
+
+  if (voted) {
+    window.location.href = "results.html";
+  } else {
+    document.getElementById("submitBtn").disabled = false;
+  }
 }
 
-// 🗳️ Submit
-function submitVote() {
-  if (!currentUser) return;
+/* ===============================
+   👁 CUSTOM VOTE TOGGLE
+================================ */
+window.checkCustom = function () {
+  const vote = document.getElementById("vote").value;
+  document.getElementById("customVote").style.display =
+    vote === "custom" ? "block" : "none";
+};
+
+/* ===============================
+   📱 DEVICE INFO
+================================ */
+function getDeviceInfo() {
+  return navigator.userAgent;
+}
+
+/* ===============================
+   🗳️ SUBMIT VOTE
+================================ */
+window.submitVote = async function () {
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+
+  if (!currentUser) {
+    document.getElementById("status").innerText =
+      "Please login first.";
+    btn.disabled = false;
+    return;
+  }
+
+  const name = document.getElementById("name").value.trim();
+  if (name === "") {
+    alert("නම ඇතුලත් කරන්න");
+    btn.disabled = false;
+    return;
+  }
 
   const finalVote =
-    vote.value === "custom" ? customVote.value : vote.value;
+    document.getElementById("vote").value === "custom"
+      ? document.getElementById("customVote").value
+      : document.getElementById("vote").value;
 
-  const data = {
+  const voteData = {
     uid: currentUser.uid,
     email: currentUser.email,
     provider: currentUser.providerData[0].providerId,
     ip: userIP,
-    voteTime: firebase.database.ServerValue.TIMESTAMP,
-    name: name.value,
+    device: getDeviceInfo(),
+    time: new Date().toLocaleString(),
+
+    name: name,
     vote: finalVote,
-    location: location.value,
-    travelTime: travelTime.value,
-    arrivalTime: arrivalTime.value,
-    parentPermission: parentPermission.value,
-    tripFrom: tripFrom.value,
-    tripTo: tripTo.value,
-    notAvailable: notAvailable.value
+    location: document.getElementById("location").value,
+    travelTime: document.getElementById("travelTime").value,
+    arrivalTime: document.getElementById("arrivalTime").value,
+    parentPermission: document.getElementById("parentPermission").value,
+    tripFrom: document.getElementById("tripFrom").value,
+    tripTo: document.getElementById("tripTo").value,
+    notAvailable: document.getElementById("notAvailable").value
   };
 
-  db.ref("votes").push(data).then(() => {
-    location.href = "results.html";
-  });
-}
+  await push(ref(db, "votes"), voteData);
 
-// 👁 Custom vote toggle (original behavior)
-function checkCustom() {
-  customVote.style.display =
-    vote.value === "custom" ? "block" : "none";
-}
+  window.location.href = "results.html";
+};
