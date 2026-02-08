@@ -1,3 +1,8 @@
+/* 🔥 DEBUG */
+alert("🔥 script.js LOADED");
+console.log("🔥 script.js loaded");
+
+/* ================= Firebase Imports ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import {
@@ -26,6 +31,7 @@ let userId = "";
 
 /* ✅ Google Login */
 window.loginGoogle = async function () {
+  alert("Google login clicked");
   try {
     const result = await signInWithPopup(auth, provider);
     userEmail = result.user.email;
@@ -39,7 +45,7 @@ window.loginGoogle = async function () {
 
 /* ⚠ Facebook placeholder */
 window.loginFacebook = function () {
-  alert("Facebook login 아직 implement කරලා නෑ");
+  alert("Facebook login clicked (not implemented)");
 };
 
 /* Device info */
@@ -56,6 +62,7 @@ async function getIP() {
 
 /* Custom vote toggle */
 window.checkCustom = function () {
+  alert("checkCustom triggered");
   const vote = document.getElementById("vote").value;
   document.getElementById("customVote").style.display =
     vote === "custom" ? "block" : "none";
@@ -63,6 +70,7 @@ window.checkCustom = function () {
 
 /* Submit vote */
 window.submitVote = async function () {
+  alert("Submit button clicked");
 
   const btn = document.getElementById("submitBtn");
   btn.disabled = true;
