@@ -2,7 +2,7 @@
 <html lang="si">
 <head>
 
-<!-- 🔥 Firebase SDKs – MUST BE AT TOP -->
+<!-- 🔥 Firebase SDKs (DO NOT MOVE) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -17,30 +17,36 @@
 <body>
 
 <div class="container">
-
 <h2>Wasity Yearly Trip</h2>
 
 <p class="important">
-⚠️ One user can vote only once.
+⚠️ <b>Important :</b> For one user only can vote once.
 </p>
 
 <button onclick="loginGoogle()">Login with Google</button>
-
-<hr>
+<p id="loginStatus"></p>
 
 <label>ඔබගේ නම</label>
 <input type="text" id="name">
 
+<hr>
+
 <label>චාරිකාව යා යුතු ස්ථානය</label>
-<select id="vote">
+<select id="vote" onchange="checkCustom()">
 <option>නුවර</option>
 <option>ගාල්ල</option>
+<option>පුත්තලම</option>
 <option>සිගිරිය</option>
+<option>කුරුණෑගල</option>
+<option>ගම්පහ</option>
 <option>ඩුබායි</option>
+<option value="custom">Create a custom answer</option>
 </select>
 
-<button onclick="submitVote()">Submit Vote</button>
+<input type="text" id="customVote" placeholder="Custom place" style="display:none;">
 
+<br><br>
+<button onclick="submitVote()">Submit Vote</button>
 <p id="status"></p>
 
 </div>
