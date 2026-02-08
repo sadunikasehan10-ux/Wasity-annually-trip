@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Results</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<h2>Voting Results</h2>
+<ul id="list"></ul>
+
+<script>
+firebase.initializeApp({
+  apiKey: "YOUR_API_KEY",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com"
+});
+
+firebase.database().ref("votes").once("value").then(snap => {
+  let count = {};
+  snap.forEach(s => {
+    const v = s.val().vote;
+    count[v] = (count[v] || 0) + 1;
+  });
+
+  for (let k in count) {
+    document.getElementById("list").innerHTML +=
+      `<li>${k} : ${count[k]}</li>`;
+  }
+});
+</script>
+
+</body>
+</html>
