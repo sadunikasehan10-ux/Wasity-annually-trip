@@ -24,87 +24,107 @@ const provider = new GoogleAuthProvider();
 let userEmail = "";
 let userId = "";
 
-/* Google Login */
-async function googleLogin(){
+/* ✅ Google Login */
+window.loginGoogle = async function () {
+  try {
     const result = await signInWithPopup(auth, provider);
     userEmail = result.user.email;
     userId = result.user.uid;
-}
+    alert("Login success: " + userEmail);
+  } catch (err) {
+    alert("Login failed");
+    console.error(err);
+  }
+};
 
-/* Device */
-function getDeviceInfo(){
-    return navigator.userAgent;
+/* ⚠ Facebook placeholder */
+window.loginFacebook = function () {
+  alert("Facebook login 아직 implement කරලා නෑ");
+};
+
+/* Device info */
+function getDeviceInfo() {
+  return navigator.userAgent;
 }
 
 /* IP */
-async function getIP(){
-    const res = await fetch("https://api.ipify.org?format=json");
-    const data = await res.json();
-    return data.ip;
+async function getIP() {
+  const res = await fetch("https://api.ipify.org?format=json");
+  const data = await res.json();
+  return data.ip;
 }
 
 /* Custom vote toggle */
-window.checkCustom = function(){
-    const vote = document.getElementById("vote").value;
-    document.getElementById("customVote").style.display =
-        vote === "custom" ? "block" : "none";
+window.checkCustom = function () {
+  const vote = document.getElementById("vote").value;
+  document.getElementById("customVote").style.display =
+    vote === "custom" ? "block" : "none";
 };
 
 /* Submit vote */
-window.submitVote = async function(){
+window.submitVote = async function () {
 
-    const btn = document.getElementById("submitBtn");
-    btn.disabled = true;
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
 
-    /* Ensure login */
-    if(!userEmail){
-        await googleLogin();
+  /* Ensure login */
+  if (!userEmail) {
+    await loginGoogle();
+    if (!userEmail) {
+      btn.disabled = false;
+      return;
     }
+  }
 
-    const name = document.getElementById("name").value.trim();
-    if(name === ""){
-        alert("නම ඇතුලත් කරන්න");
-        btn.disabled = false;
-        return;
-    }
+  const name = document.getElementById("name").value.trim();
+  if (name === "") {
+    alert("නම ඇතුලත් කරන්න");
+    btn.disabled = false;
+    return;
+  }
 
-    const ip = await getIP();
-    const dbRef = ref(db);
+  const ip = await getIP();
+  const dbRef = ref(db);
 
-    get(child(dbRef,"votes")).then(snapshot=>{
+  const snapshot = await get(child(dbRef, "votes"));
+  let voted = false;
 
-        let voted = false;
-
-        snapshot?.forEach(snap=>{
-            const v = snap.val();
-            if(v.ip === ip || v.email === userEmail){
-                voted = true;
-            }
-        });
-
-        if(voted){
-            alert("ඔබ දැනටමත් vote කරලා!");
-            return;
-        }
-
-        saveVote(ip);
+  if (snapshot.exists()) {
+    snapshot.forEach(snap => {
+      const v = snap.val();
+      if (v.email === userEmail || v.userId === userId) {
+        voted = true;
+      }
     });
+  }
 
-    function saveVote(ip){
-        push(ref(db,"votes"),{
-            name: name,
-            email: userEmail,      // ✅ REAL EMAIL
-            userId: userId,
-            vote: document.getElementById("vote").value,
-            customVote: document.getElementById("customVote").value,
-            location: document.getElementById("location").value,
-            travelTime: document.getElementById("travelTime").value,
-            arrivalTime: document.getElementById("arrivalTime").value,
-            parentPermission: document.getElementById("parentPermission").value,
-            tripFrom: document.getElementById("tripFrom").value,
-            tripTo: document.getElementById("tripTo").value,
-            notAvailable: document.getElementById("notAvailable").value,
-            ip: ip,
+  if (voted) {
+    alert("ඔබ දැනටමත් vote කරලා!");
+    btn.disabled = false;
+    return;
+  }
+
+  await push(ref(db, "votes"), {
+    name: name,
+    email: userEmail,
+    userId: userId,
+    vote: document.getElementById("vote").value,
+    customVote: document.getElementById("customVote").value,
+    location: document.getElementById("location").value,
+    travelTime: document.getElementById("travelTime").value,
+    arrivalTime: document.getElementById("arrivalTime").value,
+    parentPermission: document.getElementById("parentPermission").value,
+    tripFrom: document.getElementById("tripFrom").value,
+    tripTo: document.getElementById("tripTo").value,
+    notAvailable: document.getElementById("notAvailable").value,
+    ip: ip,
+    device: getDeviceInfo(),
+    time: new Date().toLocaleString()
+  });
+
+  document.getElementById("status").innerText =
+    "✅ Vote saved successfully!";
+};            ip: ip,
             device: getDeviceInfo(),
             time: new Date().toLocaleString()
         });
