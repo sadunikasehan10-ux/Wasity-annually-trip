@@ -1,51 +1,57 @@
-body{
-    font-family: Arial;
-    background:#f2f2f2;
+body {
+  font-family: Arial, sans-serif;
+  background: #f2f2f2;
 }
 
-.container{
-    max-width:600px;
-    margin:auto;
-    background:#fff;
-    padding:20px;
-    border-radius:10px;
+.container {
+  max-width: 500px;
+  margin: auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
 }
 
-input, select, button{
-    width:100%;
-    padding:10px;
-    margin-top:8px;
+h2 {
+  text-align: center;
 }
 
-button{
-    background:#0a7cff;
-    color:#fff;
-    border:none;
-    cursor:pointer;
+label {
+  display: block;
+  margin-top: 12px;
+  font-weight: bold;
 }
 
-button:disabled{
-    background:gray;
-    cursor:not-allowed;
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
 }
 
-.row{
-    display:flex;
-    gap:10px;
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
 }
 
-.row input, .row div{
-    flex:1;
+.login-buttons button {
+  margin-top: 10px;
+  background: #4267B2;
+  color: white;
 }
 
-.important{
-    background:#fff3cd;
-    padding:10px;
-    border-left:4px solid orange;
+.login-buttons button:first-child {
+  background: #db4437;
 }
 
-.contacts a{
-    text-decoration:none;
-    color:#0a7cff;
-    font-weight:bold;
+.submit {
+  margin-top: 15px;
+  background: #2ecc71;
+  color: white;
+  font-size: 16px;
+}
+
+.important {
+  background: #fff3cd;
+  padding: 10px;
+  border-radius: 6px;
 }
